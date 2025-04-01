@@ -11,18 +11,19 @@ dotenv.config();
 const app = express();
 const server = http.createServer(app);
 
-// ✅ Configuración CORS para permitir conexión desde GitHub Pages
-app.use(cors({
+// ✅ Configuración CORS COMPLETA
+const corsOptions = {
   origin: 'https://turumack.github.io',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
-  preflightContinue: false,
   optionsSuccessStatus: 204
-}));
+};
 
-// Soporte para preflight
-app.options('*', cors());
+app.use(cors(corsOptions));
+
+// ⚠️ Importante: manejar preflight OPTIONS
+app.options('*', cors(corsOptions));
 
 // Middlewares
 app.use(express.json());
@@ -35,7 +36,7 @@ app.use('/api/rooms', roomRoutes);
 initWebSocket(server);
 
 // Iniciar servidor
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => {
   console.log(`✅ WebSocket inicializado`);
   console.log(`Servidor corriendo en el puerto ${PORT}`);
