@@ -11,19 +11,21 @@ dotenv.config();
 const app = express();
 const server = http.createServer(app);
 
-// Middlewares
+// ✅ Configuración CORS para permitir conexión desde GitHub Pages
 app.use(cors({
   origin: 'https://turumack.github.io',
   methods: ['GET', 'POST'],
   credentials: true
 }));
+
+// Middlewares
 app.use(express.json());
 
 // Rutas
 app.use('/api/auth', authRoutes);
 app.use('/api/rooms', roomRoutes);
 
-// Iniciar WebSocket
+// WebSocket
 initWebSocket(server);
 
 // Iniciar servidor
