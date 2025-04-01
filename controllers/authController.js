@@ -6,12 +6,15 @@ const authController = {};
 
 // Registro de usuario
 authController.register = (req, res) => {
-  const { username, password } = req.body;
+  const { username, email, password } = req.body;
   const hashedPassword = bcrypt.hashSync(password, 8);
 
-  const sql = 'INSERT INTO users (username, password) VALUES (?, ?)';
-  db.query(sql, [username, hashedPassword], (err, result) => {
-    if (err) return res.status(500).json({ error: err });
+  const sql = 'INSERT INTO users (username, email, password) VALUES (?, ?, ?)';
+  db.query(sql, [username, email, hashedPassword], (err, result) => {
+    if (err) {
+      console.error('Error al registrar usuario:', err);
+      return res.status(500).json({ error: 'Error al registrar usuario' });
+    }
     res.status(201).json({ message: 'Usuario registrado correctamente' });
   });
 };
