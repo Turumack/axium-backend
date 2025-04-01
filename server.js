@@ -14,9 +14,15 @@ const server = http.createServer(app);
 // ✅ Configuración CORS para permitir conexión desde GitHub Pages
 app.use(cors({
   origin: 'https://turumack.github.io',
-  methods: ['GET', 'POST'],
-  credentials: true
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
+
+// Soporte para preflight
+app.options('*', cors());
 
 // Middlewares
 app.use(express.json());
