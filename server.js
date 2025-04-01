@@ -12,7 +12,11 @@ const app = express();
 const server = http.createServer(app);
 
 // Middlewares
-app.use(cors());
+app.use(cors({
+  origin: 'https://turumack.github.io',
+  methods: ['GET', 'POST'],
+  credentials: true
+}));
 app.use(express.json());
 
 // Rutas
