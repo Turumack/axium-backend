@@ -11,7 +11,7 @@ dotenv.config();
 const app = express();
 const server = http.createServer(app);
 
-// ✅ Configuración CORS COMPLETA
+// ✅ Configuración CORS completa para GitHub Pages
 const corsOptions = {
   origin: 'https://turumack.github.io',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -22,7 +22,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// ⚠️ Importante: manejar preflight OPTIONS
+// ⚠️ Soporte a preflight (importantísimo para evitar errores CORS)
 app.options('*', cors(corsOptions));
 
 // Middlewares
