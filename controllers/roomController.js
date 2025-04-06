@@ -13,7 +13,6 @@ exports.createRoom = (req, res) => {
   const { username } = req.body;
   const codigo = generarCodigoSala();
 
-  // Buscar el ID del usuario a partir del nombre
   const getUserIdQuery = 'SELECT id FROM users WHERE username = ?';
   db.query(getUserIdQuery, [username], (err, result) => {
     if (err || result.length === 0) {
@@ -126,6 +125,35 @@ exports.changeRoomState = (req, res) => {
       return res.status(404).json({ error: 'Sala no encontrada' });
     }
 
-    res.json({ mensaje: `Estado de la sala cambiado a "${nuevoEstado}"` });
+    res.json({ mensaje: `Estado cambiado a "${nuevoEstado}"` });
+  });
+};
+
+exports.getRoomByCode = (req, res) => {
+  const { codigo } = req.params;
+
+  const query = `
+    SELECT r.id, r.codigo, r.estado, r.owner_id,
+           GROUP_CONCAT(rp.username) AS jugadores
+    FROM rooms r
+    LEFT JOIN room_players rp ON rp.room_id = r.id
+    WHERE r.codigo = ?
+    GROUP BY r.id
+  `;
+
+  db.query(query, [codigo], (err, results) => {
+    if (err) {
+      console.error('Error al obtener sala por código:', err);
+      return res.status(500).json({ error: 'Error al consultar la sala' });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'Sala no encontrada' });
+    }
+
+    const sala = results[0];
+    sala.jugadores = sala.jugadores ? sala.jugadores.split(',') : [];
+
+    res.json({ sala });
   });
 };
