@@ -32,7 +32,7 @@ exports.createRoom = (req, res) => {
 
       const roomId = result.insertId;
 
-      const insertPlayerQuery = 'INSERT INTO room_users (room_id, user_id) VALUES (?, ?)';
+      const insertPlayerQuery = 'INSERT INTO room_players (room_id, user_id) VALUES (?, ?)';
       db.query(insertPlayerQuery, [roomId, userId], (err) => {
         if (err) {
           console.error('Error al agregar jugador:', err);
@@ -65,7 +65,7 @@ exports.joinRoom = (req, res) => {
 
       const room = rooms[0];
 
-      const checkPlayersQuery = 'SELECT * FROM room_users WHERE room_id = ?';
+      const checkPlayersQuery = 'SELECT * FROM room_players WHERE room_id = ?';
       db.query(checkPlayersQuery, [room.id], (err, players) => {
         if (err) {
           return res.status(500).json({ error: 'Error al consultar la sala' });
@@ -79,7 +79,7 @@ exports.joinRoom = (req, res) => {
           return res.status(403).json({ error: 'Sala llena (máx. 6 jugadores)' });
         }
 
-        const insertPlayerQuery = 'INSERT INTO room_users (room_id, user_id) VALUES (?, ?)';
+        const insertPlayerQuery = 'INSERT INTO room_players (room_id, user_id) VALUES (?, ?)';
         db.query(insertPlayerQuery, [room.id, userId], (err) => {
           if (err) {
             return res.status(500).json({ error: 'Error al unirse a la sala' });
@@ -103,7 +103,7 @@ exports.getUserRooms = (req, res) => {
   const query = `
     SELECT r.id, r.codigo, r.owner_id AS creador, r.estado
     FROM rooms r
-    JOIN room_users ru ON ru.room_id = r.id
+    JOIN room_players ru ON ru.room_id = r.id
     WHERE ru.user_id = ?
   `;
 
@@ -150,7 +150,7 @@ exports.getRoomByCode = (req, res) => {
     SELECT r.id, r.codigo, r.estado, r.owner_id,
            GROUP_CONCAT(u.username) AS jugadores
     FROM rooms r
-    LEFT JOIN room_users ru ON ru.room_id = r.id
+    LEFT JOIN room_players ru ON ru.room_id = r.id
     LEFT JOIN users u ON u.id = ru.user_id
     WHERE r.codigo = ?
     GROUP BY r.id
