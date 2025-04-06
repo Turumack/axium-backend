@@ -21,9 +21,7 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-
-// ⚠️ Soporte a preflight (importantísimo para evitar errores CORS)
-app.options('*', cors(corsOptions));
+app.options('*', cors(corsOptions)); // soporte para preflight
 
 // Middlewares
 app.use(express.json());
