@@ -14,6 +14,9 @@ app.use(express.json());
 const roomRoutes = require('./routes/rooms'); 
 app.use('/api/rooms', roomRoutes);
 
+const authRoutes = require('./routes/auth'); // ✅ Añadido
+app.use('/api/auth', authRoutes);            // ✅ Ruta activada
+
 // Iniciar WebSocket con socket.io
 initWebSocket(server);
 
