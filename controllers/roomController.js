@@ -13,23 +13,34 @@ exports.createRoom = (req, res) => {
   const { username } = req.body;
   const codigo = generarCodigoSala();
 
-  const insertRoomQuery = 'INSERT INTO rooms (codigo, owner_id, estado) VALUES (?, ?, ?)';
-  db.query(insertRoomQuery, [codigo, username, 'esperando'], (err, result) => {
-    if (err) {
-      console.error('Error al crear la sala:', err);
-      return res.status(500).json({ error: 'Error al crear la sala' });
+  // Buscar el ID del usuario a partir del nombre
+  const getUserIdQuery = 'SELECT id FROM users WHERE username = ?';
+  db.query(getUserIdQuery, [username], (err, result) => {
+    if (err || result.length === 0) {
+      console.error('Usuario no encontrado:', err);
+      return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    const roomId = result.insertId;
+    const userId = result[0].id;
 
-    const insertPlayerQuery = 'INSERT INTO room_players (room_id, username) VALUES (?, ?)';
-    db.query(insertPlayerQuery, [roomId, username], (err) => {
+    const insertRoomQuery = 'INSERT INTO rooms (codigo, owner_id, estado) VALUES (?, ?, ?)';
+    db.query(insertRoomQuery, [codigo, userId, 'esperando'], (err, result) => {
       if (err) {
-        console.error('Error al agregar jugador:', err);
-        return res.status(500).json({ error: 'Error al registrar al creador en la sala' });
+        console.error('Error al crear la sala:', err);
+        return res.status(500).json({ error: 'Error al crear la sala' });
       }
 
-      return res.status(201).json({ codigo, creador: username, estado: 'esperando' });
+      const roomId = result.insertId;
+
+      const insertPlayerQuery = 'INSERT INTO room_players (room_id, username) VALUES (?, ?)';
+      db.query(insertPlayerQuery, [roomId, username], (err) => {
+        if (err) {
+          console.error('Error al agregar jugador:', err);
+          return res.status(500).json({ error: 'Error al registrar al creador en la sala' });
+        }
+
+        return res.status(201).json({ codigo, creador: username, estado: 'esperando' });
+      });
     });
   });
 };
