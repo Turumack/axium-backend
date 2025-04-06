@@ -31,8 +31,8 @@ exports.createRoom = (req, res) => {
 
       const roomId = result.insertId;
 
-      const insertPlayerQuery = 'INSERT INTO room_players (room_id, username) VALUES (?, ?)';
-      db.query(insertPlayerQuery, [roomId, username], (err) => {
+      const insertPlayerQuery = 'INSERT INTO room_users (room_id, user_id) VALUES (?, ?)';
+      db.query(insertPlayerQuery, [roomId, userId], (err) => {
         if (err) {
           console.error('Error al agregar jugador:', err);
           return res.status(500).json({ error: 'Error al registrar al creador en la sala' });
@@ -47,38 +47,47 @@ exports.createRoom = (req, res) => {
 exports.joinRoom = (req, res) => {
   const { codigo, username } = req.body;
 
-  const getRoomQuery = 'SELECT * FROM rooms WHERE codigo = ?';
-  db.query(getRoomQuery, [codigo], (err, rooms) => {
-    if (err || rooms.length === 0) {
-      return res.status(404).json({ error: 'Sala no encontrada' });
+  const getUserIdQuery = 'SELECT id FROM users WHERE username = ?';
+  db.query(getUserIdQuery, [username], (err, result) => {
+    if (err || result.length === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    const room = rooms[0];
+    const userId = result[0].id;
 
-    const checkPlayersQuery = 'SELECT * FROM room_players WHERE room_id = ?';
-    db.query(checkPlayersQuery, [room.id], (err, players) => {
-      if (err) {
-        return res.status(500).json({ error: 'Error al consultar la sala' });
+    const getRoomQuery = 'SELECT * FROM rooms WHERE codigo = ?';
+    db.query(getRoomQuery, [codigo], (err, rooms) => {
+      if (err || rooms.length === 0) {
+        return res.status(404).json({ error: 'Sala no encontrada' });
       }
 
-      if (players.find(p => p.username === username)) {
-        return res.status(409).json({ error: 'Ya estás en esta sala' });
-      }
+      const room = rooms[0];
 
-      if (players.length >= 6) {
-        return res.status(403).json({ error: 'Sala llena (máx. 6 jugadores)' });
-      }
-
-      const insertPlayerQuery = 'INSERT INTO room_players (room_id, username) VALUES (?, ?)';
-      db.query(insertPlayerQuery, [room.id, username], (err) => {
+      const checkPlayersQuery = 'SELECT * FROM room_users WHERE room_id = ?';
+      db.query(checkPlayersQuery, [room.id], (err, players) => {
         if (err) {
-          return res.status(500).json({ error: 'Error al unirse a la sala' });
+          return res.status(500).json({ error: 'Error al consultar la sala' });
         }
 
-        return res.status(200).json({
-          codigo,
-          jugadores: [...players.map(p => p.username), username],
-          estado: room.estado
+        if (players.find(p => p.user_id === userId)) {
+          return res.status(409).json({ error: 'Ya estás en esta sala' });
+        }
+
+        if (players.length >= 6) {
+          return res.status(403).json({ error: 'Sala llena (máx. 6 jugadores)' });
+        }
+
+        const insertPlayerQuery = 'INSERT INTO room_users (room_id, user_id) VALUES (?, ?)';
+        db.query(insertPlayerQuery, [room.id, userId], (err) => {
+          if (err) {
+            return res.status(500).json({ error: 'Error al unirse a la sala' });
+          }
+
+          res.status(200).json({
+            codigo,
+            jugadores: [...players.map(p => p.user_id), userId],
+            estado: room.estado
+          });
         });
       });
     });
@@ -91,8 +100,8 @@ exports.getUserRooms = (req, res) => {
   const query = `
     SELECT r.id, r.codigo, r.owner_id AS creador, r.estado
     FROM rooms r
-    JOIN room_players rp ON rp.room_id = r.id
-    WHERE rp.username = ?
+    JOIN room_users ru ON ru.room_id = r.id
+    WHERE ru.user_id = ?
   `;
 
   db.query(query, [userId], (err, results) => {
@@ -134,9 +143,10 @@ exports.getRoomByCode = (req, res) => {
 
   const query = `
     SELECT r.id, r.codigo, r.estado, r.owner_id,
-           GROUP_CONCAT(rp.username) AS jugadores
+           GROUP_CONCAT(u.username) AS jugadores
     FROM rooms r
-    LEFT JOIN room_players rp ON rp.room_id = r.id
+    LEFT JOIN room_users ru ON ru.room_id = r.id
+    LEFT JOIN users u ON u.id = ru.user_id
     WHERE r.codigo = ?
     GROUP BY r.id
   `;
