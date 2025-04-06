@@ -11,4 +11,7 @@ router.post('/join', roomController.joinRoom);
 // Ver salas del usuario
 router.get('/user/:userId', roomController.getUserRooms);
 
+// Cambiar estado de una sala
+router.post('/:codigo/state', roomController.changeRoomState);
+
 module.exports = router;
