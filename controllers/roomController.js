@@ -13,8 +13,8 @@ exports.createRoom = (req, res) => {
   const { username } = req.body;
   const codigo = generarCodigoSala();
 
-  const insertRoomQuery = 'INSERT INTO rooms (codigo, creador) VALUES (?, ?)';
-  db.query(insertRoomQuery, [codigo, username], (err, result) => {
+  const insertRoomQuery = 'INSERT INTO rooms (codigo, creador, estado) VALUES (?, ?, ?)';
+  db.query(insertRoomQuery, [codigo, username, 'esperando'], (err, result) => {
     if (err) {
       console.error('Error al crear la sala:', err);
       return res.status(500).json({ error: 'Error al crear la sala' });
@@ -29,7 +29,7 @@ exports.createRoom = (req, res) => {
         return res.status(500).json({ error: 'Error al registrar al creador en la sala' });
       }
 
-      return res.status(201).json({ codigo, creador: username });
+      return res.status(201).json({ codigo, creador: username, estado: 'esperando' });
     });
   });
 };
@@ -65,7 +65,11 @@ exports.joinRoom = (req, res) => {
           return res.status(500).json({ error: 'Error al unirse a la sala' });
         }
 
-        return res.status(200).json({ codigo, jugadores: [...players.map(p => p.username), username] });
+        return res.status(200).json({
+          codigo,
+          jugadores: [...players.map(p => p.username), username],
+          estado: room.estado
+        });
       });
     });
   });
@@ -75,7 +79,7 @@ exports.getUserRooms = (req, res) => {
   const { userId } = req.params;
 
   const query = `
-    SELECT r.id, r.codigo, r.creador
+    SELECT r.id, r.codigo, r.creador, r.estado
     FROM rooms r
     JOIN room_players rp ON rp.room_id = r.id
     WHERE rp.username = ?
@@ -88,5 +92,29 @@ exports.getUserRooms = (req, res) => {
     }
 
     res.json({ salas: results });
+  });
+};
+
+exports.changeRoomState = (req, res) => {
+  const { codigo } = req.params;
+  const { nuevoEstado } = req.body;
+
+  const estadosPermitidos = ['esperando', 'jugando', 'finalizada'];
+  if (!estadosPermitidos.includes(nuevoEstado)) {
+    return res.status(400).json({ error: 'Estado no válido' });
+  }
+
+  const query = 'UPDATE rooms SET estado = ? WHERE codigo = ?';
+  db.query(query, [nuevoEstado, codigo], (err, result) => {
+    if (err) {
+      console.error('Error al actualizar estado:', err);
+      return res.status(500).json({ error: 'Error en el servidor' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Sala no encontrada' });
+    }
+
+    res.json({ mensaje: `Estado de la sala cambiado a "${nuevoEstado}"` });
   });
 };
