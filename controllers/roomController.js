@@ -79,7 +79,7 @@ exports.getUserRooms = (req, res) => {
   const { userId } = req.params;
 
   const query = `
-    SELECT r.id, r.codigo, r.creador, r.estado
+    SELECT r.id, r.codigo, r.owner_id AS creador, r.estado
     FROM rooms r
     JOIN room_players rp ON rp.room_id = r.id
     WHERE rp.username = ?
