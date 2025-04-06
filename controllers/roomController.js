@@ -9,6 +9,7 @@ function generarCodigoSala() {
   return codigo;
 }
 
+// Crear nueva sala
 exports.createRoom = (req, res) => {
   const { username } = req.body;
   const codigo = generarCodigoSala();
@@ -44,6 +45,7 @@ exports.createRoom = (req, res) => {
   });
 };
 
+// Unirse a una sala existente
 exports.joinRoom = (req, res) => {
   const { codigo, username } = req.body;
 
@@ -94,6 +96,7 @@ exports.joinRoom = (req, res) => {
   });
 };
 
+// Obtener todas las salas de un usuario
 exports.getUserRooms = (req, res) => {
   const { userId } = req.params;
 
@@ -114,6 +117,7 @@ exports.getUserRooms = (req, res) => {
   });
 };
 
+// Cambiar el estado de una sala
 exports.changeRoomState = (req, res) => {
   const { codigo } = req.params;
   const { nuevoEstado } = req.body;
@@ -138,6 +142,7 @@ exports.changeRoomState = (req, res) => {
   });
 };
 
+// Obtener detalles de una sala por su código
 exports.getRoomByCode = (req, res) => {
   const { codigo } = req.params;
 
