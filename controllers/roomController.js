@@ -13,7 +13,7 @@ exports.createRoom = (req, res) => {
   const { username } = req.body;
   const codigo = generarCodigoSala();
 
-  const insertRoomQuery = 'INSERT INTO rooms (codigo, creador, estado) VALUES (?, ?, ?)';
+  const insertRoomQuery = 'INSERT INTO rooms (codigo, owner_id, estado) VALUES (?, ?, ?)';
   db.query(insertRoomQuery, [codigo, username, 'esperando'], (err, result) => {
     if (err) {
       console.error('Error al crear la sala:', err);
