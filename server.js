@@ -11,7 +11,7 @@ app.use(cors());
 app.use(express.json());
 
 // Rutas
-const roomRoutes = require('./routes/roomRoutes');
+const roomRoutes = require('./routes/rooms'); 
 app.use('/api/rooms', roomRoutes);
 
 // Iniciar WebSocket con socket.io
