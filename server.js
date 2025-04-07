@@ -1,27 +1,28 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const http = require('http');
+// server.js
+const express = require("express");
+const cors = require("cors");
+const bodyParser = require("body-parser");
+const http = require("http");
+
 const app = express();
 const server = http.createServer(app);
-const initWebSocket = require('./websocket-server');
 
-// Middleware
+const authRoutes = require("./routes/authRoutes");
+const roomRoutes = require("./routes/rooms");
+const { initWebSocket } = require("./websocket-server");
+
 app.use(cors());
-app.use(express.json());
+app.use(bodyParser.json());
 
-// Rutas
-const roomRoutes = require('./routes/rooms'); 
-app.use('/api/rooms', roomRoutes);
+// Rutas principales
+app.use("/api/auth", authRoutes);
+app.use("/api/rooms", roomRoutes);
 
-const authRoutes = require('./routes/auth'); // ✅ Añadido
-app.use('/api/auth', authRoutes);            // ✅ Ruta activada
-
-// Iniciar WebSocket con socket.io
+// Iniciar WebSocket
 initWebSocket(server);
 
-// Iniciar servidor HTTP
+// Puerto
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+  console.log(`🚀 Servidor backend escuchando en puerto ${PORT}`);
 });
