@@ -7,7 +7,7 @@ const http = require("http");
 const app = express();
 const server = http.createServer(app);
 
-const authRoutes = require("./routes/authRoutes");
+const authRoutes = require("./routes/auth");
 const roomRoutes = require("./routes/rooms");
 const { initWebSocket } = require("./websocket-server");
 
